@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - {{ current_task.title }}{% endblock %}
+
+{% block content %}
+<div class="lesson-container">
+    <!-- Боковая панель с задачами -->
+    <div class="lesson-sidebar">
+        <h3>{{ lesson.title }}</h3>
+        <ul class="task-menu">
+            {% for task_id, task in lesson.tasks.items() %}
+            <li class="{% if task_id == task_name %}active{% endif %}">
+                <a href="/lesson/{{ lesson_name }}/{{ task_id }}">{{ task.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="lesson-content-wrapper">
+    <!-- Основное содержание задачи -->
+        <div class="lesson-content">
+            <h2>{{ current_task.title }}</h2>
+            <div class="task-description">
+                <h3>Условие задачи</h3>
+                <p>{{ current_task.description }}</p>
+
+                <h3>Примеры</h3>
+                {% for example in current_task.examples %}
+                <div class="example">
+                    <div class="example-input">
+                        <h4>Входные данные</h4>
+                        <pre>{{ example.input if example.input else "∅" }}</pre>
+                    </div>
+                    <div class="example-output">
+                        <h4>Выходные данные</h4>
+                        <pre>{{ example.output }}</pre>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="solution-area" id="solutionArea">
+                <h3>Ваше решение</h3>
+                <form id="solutionForm">
+                    <textarea name="code" id="code" placeholder="Введите ваш код на Python"></textarea>
+                    <button type="submit" id="submitBtn">Проверить</button>
+                </form>
+
+                <div class="result" id="result">
+                    <h3>Результат проверки</h3>
+                    <div class="status">
+                        <span id="statusText">Не отправлено</span>
+                        <span id="testSummary"></span>
+                    </div>
+                    <div id="testResultsContainer"></div>
+                    <div class="error" id="errorContainer" style="display: none;">
+                        <h4>Ошибка:</h4>
+                        <pre id="errorOutput"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('solutionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const solutionArea = document.getElementById('solutionArea');
+            const submitBtn = document.getElementById('submitBtn');
+            const statusText = document.getElementById('statusText');
+            const testResultsContainer = document.getElementById('testResultsContainer');
+            const errorContainer = document.getElementById('errorContainer');
+            const errorOutput = document.getElementById('errorOutput');
+            const testSummary = document.getElementById('testSummary');
+
+            // Сбрасываем предыдущие результаты
+            testResultsContainer.innerHTML = '';
+            errorContainer.style.display = 'none';
+
+            // Показываем процесс проверки
+            solutionArea.classList.remove('error', 'success');
+            solutionArea.classList.add('checking');
+            submitBtn.classList.add('checking');
+            submitBtn.disabled = true;
+            statusText.textContent = 'Проверка...';
+            testSummary.textContent = '';
+
+            // Отправляем код на сервер
+            fetch('/submit/{{ lesson_name }}/{{ task_name }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(new FormData(this))
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Считаем пройденные тесты
+                const passed = data.test_results.filter(t => t.passed).length;
+                const total = data.test_results.length;
+
+                // Обновляем статус
+                if (passed === total) {
+                    statusText.textContent = 'Все тесты пройдены';
+                    statusText.className = 'test-status passed';
+                    testSummary.textContent = ` (${passed}/${total})`;
+                    solutionArea.classList.add('success');
+                    solutionArea.classList.remove('error');
+                } else if (passed === 0) {
+                    statusText.textContent = 'Тесты не пройдены';
+                    statusText.className = 'test-status failed';
+                    testSummary.textContent = ` (0/${total})`;
+                    solutionArea.classList.add('error');
+                    solutionArea.classList.remove('success');
+                } else {
+                    statusText.textContent = 'Тесты частично пройдены';
+                    statusText.className = 'test-status partial';
+                    testSummary.textContent = ` (${passed}/${total})`;
+                    solutionArea.classList.add('error');
+                    solutionArea.classList.remove('success');
+                }
+
+                // Отображаем результаты тестов
+                data.test_results.forEach(test => {
+                    const testResult = document.createElement('div');
+                    testResult.className = `test-result ${test.passed ? 'success' : 'failure'}`;
+
+                    const testHeader = document.createElement('div');
+                    testHeader.className = 'test-header';
+                    testHeader.innerHTML = `
+                        <span>Тест #${test.test_number} - ${test.passed ? '✅ Пройден' : '❌ Не пройден'}</span>
+                        <span class="test-toggle">▶</span>
+                    `;
+
+                    const testContent = document.createElement('div');
+                    testContent.className = 'test-content';
+
+                    let contentHTML = `
+                        <div class="test-details">
+                            <div class="test-detail-block">
+                                <h5>Входные данные:</h5>
+                                <pre>${test.input || "∅"}</pre>
+                            </div>
+                    `;
+
+                    if (test.error) {
+                        contentHTML += `
+                            <div class="test-detail-block">
+                                <h5>Ошибка:</h5>
+                                <pre>${test.error}</pre>
+                            </div>
+                            <div class="test-detail-block">
+                                <h5>Статус:</h5>
+                                <span>${test.status}</span>
+                            </div>
+                        `;
+                    } else {
+                        contentHTML += `
+                            <div class="test-detail-block">
+                                <h5>Ожидаемый вывод:</h5>
+                                <pre>${test.expected}</pre>
+                            </div>
+                            <div class="test-detail-block">
+                                <h5>Полученный вывод:</h5>
+                                <pre>${test.output}</pre>
+                            </div>
+                            <div class="test-detail-block">
+                                <h5>Статус:</h5>
+                                <span>${test.passed ? 'OK' : 'WA'}</span>
+                            </div>
+                        `;
+                    }
+
+                    contentHTML += `
+                            <div class="test-detail-block">
+                                <h5>Время выполнения:</h5>
+                                <span>${test.time.toFixed(3)} сек.</span>
+                            </div>
+                        </div>
+                    `;
+
+                    testContent.innerHTML = contentHTML;
+
+                    testHeader.addEventListener('click', () => {
+                        testContent.classList.toggle('show');
+                        const toggle = testHeader.querySelector('.test-toggle');
+                        toggle.classList.toggle('rotated');
+                    });
+
+                    testResult.appendChild(testHeader);
+                    testResult.appendChild(testContent);
+                    testResultsContainer.appendChild(testResult);
+                });
+            })
+            .catch(error => {
+                statusText.textContent = 'Ошибка при проверке';
+                statusText.className = 'test-status failed';
+                errorOutput.textContent = error.message;
+                errorContainer.style.display = 'block';
+                solutionArea.classList.remove('checking');
+                solutionArea.classList.add('error');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                solutionArea.classList.remove('checking');
+                submitBtn.classList.remove('checking');
+            });
+        });
+    </script>
+</div>
+{% endblock %}

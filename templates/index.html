@@ -4,14 +4,15 @@
 
 {% block content %}
     <div class="container">
-        <h2>Доступные задания</h2>
-        <ul class="task-list">
-            {% for task_id, task in tasks.items() %}
-            <li>
-                <a href="/{{ task_id }}">{{ task.title }}</a>
-                <p>{{ task.description }}</p>
-            </li>
+        <h2>Доступные уроки</h2>
+        <div class="lesson-grid">
+            {% for lesson_id, lesson in lessons.items() %}
+            <a href="/lesson/{{ lesson_id }}/{{ lesson.tasks.keys()|first }}" class="lesson-card">
+                <h3>{{ lesson.title }}</h3>
+                <p>{{ lesson.description }}</p>
+                <span class="task-count">{{ lesson.tasks|length }} заданий</span>
+            </a>
             {% endfor %}
-        </ul>
+        </div>
     </div>
 {% endblock %}
