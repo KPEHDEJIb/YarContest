@@ -9,14 +9,16 @@ body {
 }
 
 header {
-    background-color: #f8f9fa;
+    background: linear-gradient(to right, #ff7e5f, #feb47b); /* Тёплый оранжево-розовый градиент */
     padding: 1rem;
-    border-bottom: 1px solid #e1e4e8;
+    color: white; /* Белый текст для контраста */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 header h1 {
     margin: 0;
-    color: #24292e;
+    color: white; /* Белый текст вместо тёмного */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Лёгкая тень для текста */
 }
 
 .container {
