@@ -51,8 +51,8 @@ def task(task_id):
     if task_id not in TASKS:
         return "Задание не найдено", 404
 
-    # Используем task1.html как шаблон для всех задач
-    return render_template('task1.html', task=TASKS[task_id])
+    # Используем task.html как шаблон для всех задач
+    return render_template('task.html', task=TASKS[task_id])
 
 
 def run_code(code, input_data, time_limit):

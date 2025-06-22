@@ -33,7 +33,10 @@
 
             <div class="result" id="result">
                 <h3>Результат проверки</h3>
-                <div class="status">Статус: <span id="statusText">Не отправлено</span></div>
+                <div class="status">
+                    <span id="statusText">Не отправлено</span> |
+                    <span id="testSummary">Тестов пройдено: <span id="passedCount">0</span>/<span id="totalCount">0</span></span>
+                </div>
                 <div id="testResultsContainer"></div>
                 <div class="error" id="errorContainer" style="display: none;">
                     <h4>Ошибка:</h4>
@@ -53,6 +56,9 @@
             const testResultsContainer = document.getElementById('testResultsContainer');
             const errorContainer = document.getElementById('errorContainer');
             const errorOutput = document.getElementById('errorOutput');
+            const passedCount = document.getElementById('passedCount');
+            const totalCount = document.getElementById('totalCount');
+            const testSummary = document.getElementById('testSummary');
 
             // Сбрасываем предыдущие результаты
             testResultsContainer.innerHTML = '';
@@ -75,49 +81,65 @@
             .then(data => {
                 // Обновляем статус
                 if (data.all_passed) {
-                    statusText.textContent = 'Статус: Все тесты пройдены';
+                    statusText.textContent = 'Все тесты пройдены';
                     solutionArea.classList.add('success');
                     solutionArea.classList.remove('error');
                 } else {
-                    statusText.textContent = 'Статус: Тесты не пройдены';
+                    statusText.textContent = 'Тесты не пройдены';
                     solutionArea.classList.add('error');
                     solutionArea.classList.remove('success');
                 }
+
+                // Считаем пройденные тесты
+                const passed = data.test_results.filter(t => t.passed).length;
+                const total = data.test_results.length;
+                passedCount.textContent = passed;
+                totalCount.textContent = total;
 
                 // Отображаем результаты тестов
                 data.test_results.forEach(test => {
                     const testResult = document.createElement('div');
                     testResult.className = `test-result ${test.passed ? 'success' : 'failure'}`;
 
-                    let testHTML = `
-                        <h4>Тест #${test.test_number}</h4>
-                        <p><strong>Входные данные:</strong></p>
-                        <pre>${test.input || "∅"}</pre>
+                    const testHeader = document.createElement('div');
+                    testHeader.className = 'test-header';
+                    testHeader.innerHTML = `
+                        <span>Тест #${test.test_number} - ${test.passed ? 'Пройден' : 'Не пройден'}</span>
+                        <span class="test-toggle">▶</span>
                     `;
 
-                    if (test.error) {
-                        testHTML += `
+                    const testContent = document.createElement('div');
+                    testContent.className = 'test-content';
+                    testContent.innerHTML = `
+                        <p><strong>Входные данные:</strong></p>
+                        <pre>${test.input || "∅"}</pre>
+                        ${test.error ? `
                             <p><strong>Ошибка:</strong></p>
                             <pre>${test.error}</pre>
                             <p><strong>Статус:</strong> ${test.status}</p>
-                        `;
-                    } else {
-                        testHTML += `
+                        ` : `
                             <p><strong>Ожидаемый вывод:</strong></p>
                             <pre>${test.expected}</pre>
                             <p><strong>Полученный вывод:</strong></p>
                             <pre>${test.output}</pre>
                             <p><strong>Статус:</strong> ${test.passed ? 'OK' : 'WA'}</p>
-                        `;
-                    }
+                        `}
+                        <p><strong>Время выполнения:</strong> ${test.time.toFixed(3)} сек.</p>
+                    `;
 
-                    testHTML += `<p><strong>Время выполнения:</strong> ${test.time.toFixed(3)} сек.</p>`;
-                    testResult.innerHTML = testHTML;
+                    testHeader.addEventListener('click', () => {
+                        testContent.classList.toggle('show');
+                        const toggle = testHeader.querySelector('.test-toggle');
+                        toggle.classList.toggle('rotated');
+                    });
+
+                    testResult.appendChild(testHeader);
+                    testResult.appendChild(testContent);
                     testResultsContainer.appendChild(testResult);
                 });
             })
             .catch(error => {
-                statusText.textContent = 'Статус: Ошибка при проверке';
+                statusText.textContent = 'Ошибка при проверке';
                 errorOutput.textContent = error.message;
                 errorContainer.style.display = 'block';
                 solutionArea.classList.remove('checking');

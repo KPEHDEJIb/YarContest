@@ -101,7 +101,7 @@ pre {
     border-radius: 6px;
     resize: vertical;
     margin-bottom: 1rem;
-    box-sizing: border-box; /* Добавлено для правильного расчёта ширины */
+    box-sizing: border-box;
 }
 
 button {
@@ -152,4 +152,55 @@ footer {
     padding: 1rem;
     border-top: 1px solid #e1e4e8;
     margin-top: 2rem;
+}
+
+.test-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #f6f8fa;
+    border-radius: 4px;
+}
+
+.test-content {
+    padding: 0.5rem;
+    display: none;
+}
+
+.test-content.show {
+    display: block;
+}
+
+.test-toggle {
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.test-toggle.rotated {
+    transform: rotate(90deg);
+}
+
+.test-summary {
+    margin-top: 1rem;
+    font-weight: bold;
+}
+
+.test-count {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.test-count.passed {
+    background-color: #28a745;
+    color: white;
+}
+
+.test-count.failed {
+    background-color: #d73a49;
+    color: white;
 }
