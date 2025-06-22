@@ -4,6 +4,7 @@ body {
     margin: 0;
     padding: 0;
     color: #333;
+    box-sizing: border-box;
 }
 
 header {
@@ -100,6 +101,7 @@ pre {
     border-radius: 6px;
     resize: vertical;
     margin-bottom: 1rem;
+    box-sizing: border-box; /* Добавлено для правильного расчёта ширины */
 }
 
 button {
@@ -128,6 +130,21 @@ button:disabled {
 .status {
     font-weight: bold;
     margin-bottom: 1rem;
+}
+
+.test-result {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: #f6f8fa;
+}
+
+.test-result.success {
+    border-left: 4px solid #28a745;
+}
+
+.test-result.failure {
+    border-left: 4px solid #d73a49;
 }
 
 footer {

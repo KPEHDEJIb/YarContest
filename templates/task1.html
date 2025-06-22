@@ -27,21 +27,14 @@
         <div class="solution-area" id="solutionArea">
             <h3>Ваше решение</h3>
             <form id="solutionForm">
-                <textarea name="code" id="code" placeholder="Введите ваш код на Python">{% if request.args.get('code') %}{{ request.args.get('code') }}{% else %}print("Hello, world!"){% endif %}</textarea>
+                <textarea name="code" id="code" placeholder="Введите ваш код на Python">{% if request.args.get('code') %}{{ request.args.get('code') }}{% else %}{% if task.title == 'Сумма двух чисел' %}a = int(input())\nb = int(input())\nprint(a + b){% else %}print("Hello, world!"){% endif %}{% endif %}</textarea>
                 <button type="submit" id="submitBtn">Проверить</button>
             </form>
-            
+
             <div class="result" id="result">
                 <h3>Результат проверки</h3>
-                <div class="status" id="status">Статус: <span id="statusText">Не отправлено</span></div>
-                <div class="output" id="outputContainer" style="display: none;">
-                    <h4>Вывод программы:</h4>
-                    <pre id="programOutput"></pre>
-                </div>
-                <div class="comparison" id="comparisonContainer" style="display: none;">
-                    <h4>Ожидаемый вывод:</h4>
-                    <pre id="expectedOutput"></pre>
-                </div>
+                <div class="status">Статус: <span id="statusText">Не отправлено</span></div>
+                <div id="testResultsContainer"></div>
                 <div class="error" id="errorContainer" style="display: none;">
                     <h4>Ошибка:</h4>
                     <pre id="errorOutput"></pre>
@@ -49,33 +42,29 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         document.getElementById('solutionForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const solutionArea = document.getElementById('solutionArea');
             const submitBtn = document.getElementById('submitBtn');
             const statusText = document.getElementById('statusText');
-            const outputContainer = document.getElementById('outputContainer');
-            const programOutput = document.getElementById('programOutput');
-            const comparisonContainer = document.getElementById('comparisonContainer');
-            const expectedOutput = document.getElementById('expectedOutput');
+            const testResultsContainer = document.getElementById('testResultsContainer');
             const errorContainer = document.getElementById('errorContainer');
             const errorOutput = document.getElementById('errorOutput');
-            
+
             // Сбрасываем предыдущие результаты
-            outputContainer.style.display = 'none';
-            comparisonContainer.style.display = 'none';
+            testResultsContainer.innerHTML = '';
             errorContainer.style.display = 'none';
-            
+
             // Показываем процесс проверки
             solutionArea.classList.add('checking');
             submitBtn.disabled = true;
             statusText.textContent = 'Проверка...';
-            
+
             // Отправляем код на сервер
-            fetch('/submit/task1', {
+            fetch('/submit/{% if task.title == "Сумма двух чисел" %}task2{% else %}task1{% endif %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -85,36 +74,47 @@
             .then(response => response.json())
             .then(data => {
                 // Обновляем статус
-                let statusClass = '';
-                if (data.status === 'OK') {
-                    statusText.textContent = 'Статус: OK';
-                    statusClass = 'success';
+                if (data.all_passed) {
+                    statusText.textContent = 'Статус: Все тесты пройдены';
+                    solutionArea.classList.add('success');
+                    solutionArea.classList.remove('error');
                 } else {
-                    statusText.textContent = `Статус: ${data.status}`;
-                    statusClass = 'error';
+                    statusText.textContent = 'Статус: Тесты не пройдены';
+                    solutionArea.classList.add('error');
+                    solutionArea.classList.remove('success');
                 }
-                
-                // Показываем вывод программы
-                if (data.output !== undefined) {
-                    programOutput.textContent = data.output;
-                    outputContainer.style.display = 'block';
-                }
-                
-                // Показываем сравнение при WA
-                if (data.status === 'WA') {
-                    expectedOutput.textContent = data.expected;
-                    comparisonContainer.style.display = 'block';
-                }
-                
-                // Показываем ошибку при наличии
-                if (data.error) {
-                    errorOutput.textContent = data.error;
-                    errorContainer.style.display = 'block';
-                }
-                
-                // Обновляем классы для отображения статуса
-                solutionArea.classList.remove('checking');
-                solutionArea.classList.add(statusClass);
+
+                // Отображаем результаты тестов
+                data.test_results.forEach(test => {
+                    const testResult = document.createElement('div');
+                    testResult.className = `test-result ${test.passed ? 'success' : 'failure'}`;
+
+                    let testHTML = `
+                        <h4>Тест #${test.test_number}</h4>
+                        <p><strong>Входные данные:</strong></p>
+                        <pre>${test.input || "∅"}</pre>
+                    `;
+
+                    if (test.error) {
+                        testHTML += `
+                            <p><strong>Ошибка:</strong></p>
+                            <pre>${test.error}</pre>
+                            <p><strong>Статус:</strong> ${test.status}</p>
+                        `;
+                    } else {
+                        testHTML += `
+                            <p><strong>Ожидаемый вывод:</strong></p>
+                            <pre>${test.expected}</pre>
+                            <p><strong>Полученный вывод:</strong></p>
+                            <pre>${test.output}</pre>
+                            <p><strong>Статус:</strong> ${test.passed ? 'OK' : 'WA'}</p>
+                        `;
+                    }
+
+                    testHTML += `<p><strong>Время выполнения:</strong> ${test.time.toFixed(3)} сек.</p>`;
+                    testResult.innerHTML = testHTML;
+                    testResultsContainer.appendChild(testResult);
+                });
             })
             .catch(error => {
                 statusText.textContent = 'Статус: Ошибка при проверке';
@@ -125,6 +125,7 @@
             })
             .finally(() => {
                 submitBtn.disabled = false;
+                solutionArea.classList.remove('checking');
             });
         });
     </script>
