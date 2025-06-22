@@ -414,14 +414,17 @@ footer {
 
 /* Адаптивность */
 @media (max-width: 768px) {
-
     .lesson-container {
-        flex-direction: column;
-        padding: 0 0.5rem;
+        grid-template-columns: 1fr;
+    }
+
+    .lesson-content-wrapper {
+        justify-content: flex-start;
     }
 
     .lesson-sidebar {
         position: static;
+        height: auto;
     }
 
     .container {
@@ -470,4 +473,25 @@ footer {
 #code {
     white-space: pre;
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.main-content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.lesson-container {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+}
+
+.lesson-content-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.lesson-content {
+    max-width: 900px;
+    width: 100%;
 }

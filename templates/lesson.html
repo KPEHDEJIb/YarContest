@@ -15,46 +15,48 @@
             {% endfor %}
         </ul>
     </div>
-    
+
+    <div class="lesson-content-wrapper">
     <!-- Основное содержание задачи -->
-    <div class="lesson-content">
-        <h2>{{ current_task.title }}</h2>
-        <div class="task-description">
-            <h3>Условие задачи</h3>
-            <p>{{ current_task.description }}</p>
+        <div class="lesson-content">
+            <h2>{{ current_task.title }}</h2>
+            <div class="task-description">
+                <h3>Условие задачи</h3>
+                <p>{{ current_task.description }}</p>
 
-            <h3>Примеры</h3>
-            {% for example in current_task.examples %}
-            <div class="example">
-                <div class="example-input">
-                    <h4>Входные данные</h4>
-                    <pre>{{ example.input if example.input else "∅" }}</pre>
+                <h3>Примеры</h3>
+                {% for example in current_task.examples %}
+                <div class="example">
+                    <div class="example-input">
+                        <h4>Входные данные</h4>
+                        <pre>{{ example.input if example.input else "∅" }}</pre>
+                    </div>
+                    <div class="example-output">
+                        <h4>Выходные данные</h4>
+                        <pre>{{ example.output }}</pre>
+                    </div>
                 </div>
-                <div class="example-output">
-                    <h4>Выходные данные</h4>
-                    <pre>{{ example.output }}</pre>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
 
-        <div class="solution-area" id="solutionArea">
-            <h3>Ваше решение</h3>
-            <form id="solutionForm">
-                <textarea name="code" id="code" placeholder="Введите ваш код на Python"></textarea>
-                <button type="submit" id="submitBtn">Проверить</button>
-            </form>
+            <div class="solution-area" id="solutionArea">
+                <h3>Ваше решение</h3>
+                <form id="solutionForm">
+                    <textarea name="code" id="code" placeholder="Введите ваш код на Python"></textarea>
+                    <button type="submit" id="submitBtn">Проверить</button>
+                </form>
 
-            <div class="result" id="result">
-                <h3>Результат проверки</h3>
-                <div class="status">
-                    <span id="statusText">Не отправлено</span>
-                    <span id="testSummary"></span>
-                </div>
-                <div id="testResultsContainer"></div>
-                <div class="error" id="errorContainer" style="display: none;">
-                    <h4>Ошибка:</h4>
-                    <pre id="errorOutput"></pre>
+                <div class="result" id="result">
+                    <h3>Результат проверки</h3>
+                    <div class="status">
+                        <span id="statusText">Не отправлено</span>
+                        <span id="testSummary"></span>
+                    </div>
+                    <div id="testResultsContainer"></div>
+                    <div class="error" id="errorContainer" style="display: none;">
+                        <h4>Ошибка:</h4>
+                        <pre id="errorOutput"></pre>
+                    </div>
                 </div>
             </div>
         </div>

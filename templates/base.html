@@ -12,8 +12,10 @@
             <h1>YarContest</h1>
         </a>
     </header>
-    <main style="padding: 0 1rem;">  <!-- Добавили горизонтальные отступы -->
-        {% block content %}{% endblock %}
+    <main style="padding: 0 1rem;">
+        <div class="main-content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
     </main>
     <footer>
         <p>Все права принадлежат Птице Ярославу</p>
