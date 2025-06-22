@@ -5,6 +5,7 @@ body {
     padding: 0;
     color: #333;
     box-sizing: border-box;
+    background-color: #f5f5f5;  /* Светло-серый фон для всей страницы */
 }
 
 header {
@@ -19,9 +20,14 @@ header h1 {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1000px;  /* Уменьшили ширину с 1200px */
     margin: 0 auto;
     padding: 1rem;
+    background-color: #fff;  /* Добавили белый фон */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  /* Легкая тень для выделения */
+    border-radius: 8px;  /* Скругленные углы */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 .task-list {
@@ -203,4 +209,45 @@ footer {
 .test-count.failed {
     background-color: #d73a49;
     color: white;
+}
+
+.test-details {
+    margin-top: 0.5rem;
+}
+
+.test-detail-block {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #ddd;
+}
+
+.test-detail-block h5 {
+    margin: 0 0 0.3rem 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.test-detail-block pre {
+    margin: 0;
+    background-color: transparent;
+    padding: 0;
+}
+
+.test-status {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.test-status.passed {
+    color: #28a745;
+}
+
+.test-status.failed {
+    color: #d73a49;
+}
+
+.test-status.partial {
+    color: #ffc107;
 }

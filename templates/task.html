@@ -27,15 +27,15 @@
         <div class="solution-area" id="solutionArea">
             <h3>Ваше решение</h3>
             <form id="solutionForm">
-                <textarea name="code" id="code" placeholder="Введите ваш код на Python">{% if request.args.get('code') %}{{ request.args.get('code') }}{% else %}{% if task.title == 'Сумма двух чисел' %}a = int(input())\nb = int(input())\nprint(a + b){% else %}print("Hello, world!"){% endif %}{% endif %}</textarea>
+                <textarea name="code" id="code" placeholder="Введите ваш код на Python"></textarea>
                 <button type="submit" id="submitBtn">Проверить</button>
             </form>
 
             <div class="result" id="result">
                 <h3>Результат проверки</h3>
                 <div class="status">
-                    <span id="statusText">Не отправлено</span> |
-                    <span id="testSummary">Тестов пройдено: <span id="passedCount">0</span>/<span id="totalCount">0</span></span>
+                    <span id="statusText">Не отправлено</span>
+                    <span id="testSummary"></span>
                 </div>
                 <div id="testResultsContainer"></div>
                 <div class="error" id="errorContainer" style="display: none;">
@@ -56,8 +56,6 @@
             const testResultsContainer = document.getElementById('testResultsContainer');
             const errorContainer = document.getElementById('errorContainer');
             const errorOutput = document.getElementById('errorOutput');
-            const passedCount = document.getElementById('passedCount');
-            const totalCount = document.getElementById('totalCount');
             const testSummary = document.getElementById('testSummary');
 
             // Сбрасываем предыдущие результаты
@@ -68,6 +66,7 @@
             solutionArea.classList.add('checking');
             submitBtn.disabled = true;
             statusText.textContent = 'Проверка...';
+            testSummary.textContent = '';
 
             // Отправляем код на сервер
             fetch('/submit/{% if task.title == "Сумма двух чисел" %}task2{% else %}task1{% endif %}', {
@@ -79,22 +78,30 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Обновляем статус
-                if (data.all_passed) {
-                    statusText.textContent = 'Все тесты пройдены';
-                    solutionArea.classList.add('success');
-                    solutionArea.classList.remove('error');
-                } else {
-                    statusText.textContent = 'Тесты не пройдены';
-                    solutionArea.classList.add('error');
-                    solutionArea.classList.remove('success');
-                }
-
                 // Считаем пройденные тесты
                 const passed = data.test_results.filter(t => t.passed).length;
                 const total = data.test_results.length;
-                passedCount.textContent = passed;
-                totalCount.textContent = total;
+
+                // Обновляем статус
+                if (passed === total) {
+                    statusText.textContent = 'Все тесты пройдены';
+                    statusText.className = 'test-status passed';
+                    testSummary.textContent = ` (${passed}/${total})`;
+                    solutionArea.classList.add('success');
+                    solutionArea.classList.remove('error');
+                } else if (passed === 0) {
+                    statusText.textContent = 'Тесты не пройдены';
+                    statusText.className = 'test-status failed';
+                    testSummary.textContent = ` (0/${total})`;
+                    solutionArea.classList.add('error');
+                    solutionArea.classList.remove('success');
+                } else {
+                    statusText.textContent = 'Тесты частично пройдены';
+                    statusText.className = 'test-status partial';
+                    testSummary.textContent = ` (${passed}/${total})`;
+                    solutionArea.classList.add('error');
+                    solutionArea.classList.remove('success');
+                }
 
                 // Отображаем результаты тестов
                 data.test_results.forEach(test => {
@@ -104,28 +111,58 @@
                     const testHeader = document.createElement('div');
                     testHeader.className = 'test-header';
                     testHeader.innerHTML = `
-                        <span>Тест #${test.test_number} - ${test.passed ? 'Пройден' : 'Не пройден'}</span>
+                        <span>Тест #${test.test_number} - ${test.passed ? '✅ Пройден' : '❌ Не пройден'}</span>
                         <span class="test-toggle">▶</span>
                     `;
 
                     const testContent = document.createElement('div');
                     testContent.className = 'test-content';
-                    testContent.innerHTML = `
-                        <p><strong>Входные данные:</strong></p>
-                        <pre>${test.input || "∅"}</pre>
-                        ${test.error ? `
-                            <p><strong>Ошибка:</strong></p>
-                            <pre>${test.error}</pre>
-                            <p><strong>Статус:</strong> ${test.status}</p>
-                        ` : `
-                            <p><strong>Ожидаемый вывод:</strong></p>
-                            <pre>${test.expected}</pre>
-                            <p><strong>Полученный вывод:</strong></p>
-                            <pre>${test.output}</pre>
-                            <p><strong>Статус:</strong> ${test.passed ? 'OK' : 'WA'}</p>
-                        `}
-                        <p><strong>Время выполнения:</strong> ${test.time.toFixed(3)} сек.</p>
+
+                    let contentHTML = `
+                        <div class="test-details">
+                            <div class="test-detail-block">
+                                <h5>Входные данные:</h5>
+                                <pre>${test.input || "∅"}</pre>
+                            </div>
                     `;
+
+                    if (test.error) {
+                        contentHTML += `
+                            <div class="test-detail-block">
+                                <h5>Ошибка:</h5>
+                                <pre>${test.error}</pre>
+                            </div>
+                            <div class="test-detail-block">
+                                <h5>Статус:</h5>
+                                <span>${test.status}</span>
+                            </div>
+                        `;
+                    } else {
+                        contentHTML += `
+                            <div class="test-detail-block">
+                                <h5>Ожидаемый вывод:</h5>
+                                <pre>${test.expected}</pre>
+                            </div>
+                            <div class="test-detail-block">
+                                <h5>Полученный вывод:</h5>
+                                <pre>${test.output}</pre>
+                            </div>
+                            <div class="test-detail-block">
+                                <h5>Статус:</h5>
+                                <span>${test.passed ? 'OK' : 'WA'}</span>
+                            </div>
+                        `;
+                    }
+
+                    contentHTML += `
+                            <div class="test-detail-block">
+                                <h5>Время выполнения:</h5>
+                                <span>${test.time.toFixed(3)} сек.</span>
+                            </div>
+                        </div>
+                    `;
+
+                    testContent.innerHTML = contentHTML;
 
                     testHeader.addEventListener('click', () => {
                         testContent.classList.toggle('show');
@@ -140,6 +177,7 @@
             })
             .catch(error => {
                 statusText.textContent = 'Ошибка при проверке';
+                statusText.className = 'test-status failed';
                 errorOutput.textContent = error.message;
                 errorContainer.style.display = 'block';
                 solutionArea.classList.remove('checking');
