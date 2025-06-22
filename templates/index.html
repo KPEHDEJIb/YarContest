@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>Доступные задания</h2>
+        <ul class="task-list">
+            {% for task_id, task in tasks.items() %}
+            <li>
+                <a href="/{{ task_id }}">{{ task.title }}</a>
+                <p>{{ task.description }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
