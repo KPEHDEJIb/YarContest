@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - {{ current_task.title }}{% endblock %}
+
+{% block content %}
+<div class="lesson-container">
+    <!-- Боковая панель с задачами -->
+    <div class="lesson-sidebar">
+        <h3>{{ lesson.title }}</h3>
+        <ul class="task-menu">
+            {% for task_id, task in lesson.tasks.items() %}
+            <li class="{% if task_id == task_name %}active{% endif %}">
+                <a href="/lesson/{{ lesson_name }}/{{ task_id }}">{{ task.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Основное содержание задачи -->
+    <div class="lesson-content">
+        <h2>{{ current_task.title }}</h2>
+        <div class="task-description">
+            <h3>Условие задачи</h3>
+            <p>{{ current_task.description }}</p>
+            
+            <h3>Примеры</h3>
+            {% for example in current_task.examples %}
+            <div class="example">
+                <div class="example-input">
+                    <h4>Входные данные</h4>
+                    <pre>{{ example.input if example.input else "∅" }}</pre>
+                </div>
+                <div class="example-output">
+                    <h4>Выходные данные</h4>
+                    <pre>{{ example.output }}</pre>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="solution-area" id="solutionArea">
+            <!-- Форма с кодом и кнопкой отправки -->
+            <!-- JavaScript остаётся без изменений -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript из task.html переносится без изменений
+    // Только меняем URL в fetch на:
+    fetch('/submit/{{ lesson_name }}/{{ task_name }}', { ... })
+</script>
+{% endblock %}

@@ -253,3 +253,79 @@ footer {
 .test-status.partial {
     color: #ffc107;
 }
+
+.lesson-container {
+    display: flex;
+    gap: 2rem;
+}
+
+.lesson-sidebar {
+    flex: 0 0 250px;
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.task-menu {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+}
+
+.task-menu li {
+    margin-bottom: 0.5rem;
+}
+
+.task-menu a {
+    display: block;
+    padding: 0.5rem;
+    text-decoration: none;
+    color: #0366d6;
+    border-radius: 4px;
+}
+
+.task-menu a:hover {
+    background-color: #e1e4e8;
+}
+
+.task-menu .active a {
+    background-color: #0366d6;
+    color: white;
+}
+
+.lesson-content {
+    flex: 1;
+}
+
+.lesson-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.lesson-card {
+    display: block;
+    padding: 1.5rem;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.lesson-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.task-count {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    background-color: #f0f0f0;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}

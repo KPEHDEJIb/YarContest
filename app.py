@@ -1,61 +1,62 @@
 from flask import Flask, render_template, request, jsonify
+from importlib import import_module
 import subprocess
-import os
 import time
 import sys
+import os
 
 app = Flask(__name__)
 
-# Конфигурация заданий
-TASKS = {
-    'task1': {
-        'title': 'Hello, World!',
-        'description': 'Напишите программу на Python, которая выводит строку "Hello, world!" (без кавычек).',
-        'examples': [
-            {'input': '', 'output': 'Hello, world!'}
-        ],
-        'tests': [
-            {'input': '', 'output': 'Hello, world!'},
-            {'input': 'test', 'output': 'Hello, world!'}  # Проверка, что программа игнорирует ввод
-        ],
-        'time_limit': 1,
-        'memory_limit': 16 * 1024 * 1024,
-    },
-    'task2': {
-        'title': 'Сумма двух чисел',
-        'description': 'Напишите программу, которая считывает два числа и выводит их сумму.',
-        'examples': [
-            {'input': '2\n3', 'output': '5'},
-            {'input': '-1\n5', 'output': '4'}
-        ],
-        'tests': [
-            {'input': '2\n3', 'output': '5'},
-            {'input': '-1\n5', 'output': '4'},
-            {'input': '0\n0', 'output': '0'},
-            {'input': '123\n456', 'output': '579'},
-            {'input': '-10\n-20', 'output': '-30'}
-        ],
-        'time_limit': 1,
-        'memory_limit': 16 * 1024 * 1024,
-    }
-}
+
+# Автоматическая загрузка уроков
+def load_lessons():
+    lessons = {}
+    lessons_dir = os.path.join(os.path.dirname(__file__), 'lessons')
+
+    for lesson_name in os.listdir(lessons_dir):
+        lesson_path = os.path.join(lessons_dir, lesson_name)
+        if os.path.isdir(lesson_path) and lesson_name != '__pycache__':
+            try:
+                lesson_module = import_module(f'lessons.{lesson_name}.tasks')
+                lessons[lesson_name] = {
+                    'title': getattr(lesson_module, 'LESSON_TITLE', lesson_name),
+                    'description': getattr(lesson_module, 'LESSON_DESCRIPTION', ''),
+                    'tasks': getattr(lesson_module, 'TASKS', {})
+                }
+            except ImportError as e:
+                print(f"Error loading lesson {lesson_name}: {e}")
+    return lessons
+
+
+LESSONS = load_lessons()
 
 
 @app.route('/')
 def index():
-    return render_template('index.html', tasks=TASKS)
+    return render_template('index.html', lessons=LESSONS)
 
 
-@app.route('/<task_id>')
-def task(task_id):
-    if task_id not in TASKS:
+@app.route('/lesson/<lesson_name>/<task_name>')
+def show_task(lesson_name, task_name):
+    if lesson_name not in LESSONS:
+        return "Урок не найден", 404
+
+    lesson = LESSONS[lesson_name]
+
+    if task_name not in lesson['tasks']:
         return "Задание не найдено", 404
 
-    # Используем task.html как шаблон для всех задач
-    return render_template('task.html', task=TASKS[task_id])
+    task = lesson['tasks'][task_name]
+
+    return render_template('lesson.html',
+                           lesson=lesson,
+                           current_task=task,
+                           lesson_name=lesson_name,
+                           task_name=task_name)
 
 
 def run_code(code, input_data, time_limit):
+    """Запуск кода с ограничениями"""
     temp_file = f'temp_{time.time()}.py'
     with open(temp_file, 'w') as f:
         f.write(code)
@@ -69,8 +70,6 @@ def run_code(code, input_data, time_limit):
 
     try:
         start_time = time.time()
-
-        # Перенаправляем stdin для передачи входных данных
         process = subprocess.Popen(
             [sys.executable, temp_file],
             stdin=subprocess.PIPE,
@@ -100,19 +99,25 @@ def run_code(code, input_data, time_limit):
     return result
 
 
-@app.route('/submit/<task_id>', methods=['POST'])
-def submit(task_id):
-    if task_id not in TASKS:
+@app.route('/submit/<lesson_name>/<task_name>', methods=['POST'])
+def submit(lesson_name, task_name):
+    # Проверяем существование урока и задачи
+    if lesson_name not in LESSONS:
+        return jsonify({'status': 'error', 'message': 'Lesson not found'}), 404
+
+    if task_name not in LESSONS[lesson_name]['tasks']:
         return jsonify({'status': 'error', 'message': 'Task not found'}), 404
 
+    # Получаем код из формы
     code = request.form.get('code', '')
     if not code:
         return jsonify({'status': 'error', 'message': 'Empty code'}), 400
 
-    task = TASKS[task_id]
+    task = LESSONS[lesson_name]['tasks'][task_name]
     test_results = []
     all_passed = True
 
+    # Запускаем все тесты для задачи
     for i, test in enumerate(task['tests'], 1):
         test_result = {
             'test_number': i,
@@ -133,14 +138,14 @@ def submit(task_id):
         })
 
         if run_result['exit_code'] != 0:
-            test_result['status'] = 'RE'
+            test_result['status'] = 'RE'  # Runtime Error
             test_result['error'] = run_result['error']
             all_passed = False
         elif run_result['output'] == test['output']:
             test_result['status'] = 'OK'
             test_result['passed'] = True
         else:
-            test_result['status'] = 'WA'
+            test_result['status'] = 'WA'  # Wrong Answer
             all_passed = False
 
         test_results.append(test_result)
