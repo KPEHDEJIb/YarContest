@@ -58,7 +58,8 @@ def show_task(lesson_name, task_name):
 def run_code(code, input_data, time_limit):
     """Запуск кода с ограничениями"""
     temp_file = f'temp_{time.time()}.py'
-    with open(temp_file, 'w') as f:
+
+    with open(temp_file, 'w', encoding='utf-8') as f:
         f.write(code)
 
     result = {
@@ -75,7 +76,8 @@ def run_code(code, input_data, time_limit):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
+            encoding='utf-8'
         )
 
         try:
