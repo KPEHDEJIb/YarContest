@@ -7,7 +7,8 @@ TASKS = {
         'description': 'Напишите программу, которая выводит "Hello, world!"',
         'examples': [{'input': '', 'output': 'Hello, world!'}],
         'tests': [
-            {'input': '', 'output': 'Hello, world!'}
+            {'input': '', 'output': 'Hello, world!'},
+            {'input': '123', 'output': 'Hello, world!'}
         ],
         'time_limit': 1,
         'memory_limit': 16 * 1024 * 1024
