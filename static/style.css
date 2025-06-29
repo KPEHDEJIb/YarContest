@@ -495,3 +495,7 @@ footer {
     max-width: 900px;
     width: 100%;
 }
+
+.task-description p {
+    white-space: pre-line;
+}
