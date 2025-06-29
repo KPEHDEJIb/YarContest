@@ -1,9 +1,9 @@
 from dataclasses import dataclass
+from time import time
 
-
-@dataclass(frozen=True)
+@dataclass()
 class TestCaseResult:
     output: str
     error: str | None
-    time: int
+    time: time
     exit_code: int

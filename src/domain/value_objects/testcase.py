@@ -5,3 +5,4 @@ from dataclasses import dataclass
 class TestCase:
     input: str
     output: str
+    time_limit: int
